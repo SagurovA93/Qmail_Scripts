@@ -65,9 +65,15 @@ function UNIQE_MAIL () {
 		DATE_MAIL_CURRENT="$( grep -m 1 '^Date: ' ./"$MAIL_CURRENT_NAME" )"
 		#Получаю дату из следующего письма
 		DATE_MAIL_NEXT="$( grep -m 1 '^Date: ' ./"$MAIL_NEXT_NAME" )"
-		if [[ "$DATE_MAIL_CURRENT" == "$DATE_MAIL_NEXT" ]]; then #Если даты совпадают - письмо следующее ( number_of_mail + 1 ) удаляется
- 			echo "удаляю $MAIL_CURRENT_NAME"
-			rm ./"$MAIL_CURRENT_NAME"
+		TRIGGER_DATE_MAIL_CURRENT="$( grep -c '^Date: ' ./"$MAIL_CURRENT_NAME" )"
+		TRIGGER_DATE_MAIL_NEXT="$( grep -c '^Date: ' ./"$MAIL_NEXT_NAME" )"
+		if [[ "$DATE_MAIL_CURRENT" == "$DATE_MAIL_NEXT" ]]; then #Если даты совпадают - письмо текущее ( number_of_mail ) удаляется
+ 			if [[ $TRIGGER_DATE_MAIL_CURRENT != 0 && $TRIGGER_DATE_MAIL_NEXT != 0 ]]; then
+ 				echo "удаляю $MAIL_CURRENT_NAME"
+				rm ./"$MAIL_CURRENT_NAME"
+			else
+				echo -e "Строка Date: не получена из письма\\nMAIL_CURRENT_NAME=$MAIL_CURRENT_NAME или MAIL_NEXT_NAME=$MAIL_NEXT_NAME"
+ 			fi
 		fi
 		if [[ "$number_of__next_mail" == "$stop_point" ]]; then
 			echo 'Удаление одинаковых писем закончено'
