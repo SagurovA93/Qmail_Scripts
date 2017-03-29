@@ -1,6 +1,6 @@
 #!/bin/bash 
 ####################################################
-Запуск с ключом -u [имя пользователя] - запустит 
+#Запуск с ключом -u [имя пользователя]
 ####################################################
 ABSOLUTE_FILENAME=`readlink -e "$0"`
 DIRECTORY=`dirname "$ABSOLUTE_FILENAME"`
@@ -22,13 +22,14 @@ echo "user_mod = $user_mod"
 echo 'Введи имя/имена групп и год через пробел:'
 read group_name year
 # Сканироание групп
+#------------------------------------------------------------
 if [[ "$group_name" == '!' ]]; then
 	TRIGER_DO_ALL_GROUPS='yes' #Триггер включения сканирования по всем группам из файлика
 	group_counter=0
 else 
 	TRIGER_DO_ALL_GROUPS='no'
 fi
-
+#------------------------------------------------------------
 if [ ! -e "$DIRECTORY/Mail_Fail_log.csv" ]; then
 	echo -e "Имя группы;Имя пользователя;Почтовый адрес;Папка maildir" > "$DIRECTORY/Mail_Fail_log.csv"
 fi
@@ -51,23 +52,24 @@ function DO_ALL_GROUP () {
 function UNIQE_MAIL () {
 	cd "$user_mailbox/.maildir/.INBOX.BACKUP.$group_name/cur" 
 	ls ./ > "$DIRECTORY/list_of_mail" # Получаю список имен писем
-	amount_of_mails="$( cat $DIRECTORY/list_of_mail | wc -l )" #Считаю сколько писем в папке
+	amount_of_mails="$( cat "$DIRECTORY/list_of_mail" | wc -l )" #Считаю сколько писем в папке
+	let stop_point=$amount_of_mails+1
 	echo "Количество писем: $amount_of_mails" 
 	for (( number_of_mail = 1; i <= $amount_of_mails; number_of_mail++ )); do #задаю цикл от 1 до количества писем в папке 
 		number_of__next_mail=$(( $number_of_mail + 1 ))
 		#получаю имя письма, по порядку переменной number_of_mail
-		MAIL_CURRENT_NAME="$( cat -n $DIRECTORY/list_of_mail | sed -n "$number_of_mail p" | cut -f2 )" 
+		MAIL_CURRENT_NAME="$( cat -n "$DIRECTORY/list_of_mail" | sed -n "$number_of_mail p" | cut -f2 )" 
 		#получаю имя следующего письма ( number_of_mail + 1 )
-		MAIL_NEXT_NAME="$( cat -n $DIRECTORY/list_of_mail | sed -n "$number_of__next_mail p" | cut -f2 )"
+		MAIL_NEXT_NAME="$( cat -n "$DIRECTORY/list_of_mail" | sed -n "$number_of__next_mail p" | cut -f2 )"
 		#Получаю дату из первого (текущего) письма 
 		DATE_MAIL_CURRENT="$( grep -m 1 '^Date: ' ./"$MAIL_CURRENT_NAME" )"
 		#Получаю дату из следующего письма
-		DATE_MAIL_NEXT="$( grep -m 1 '^Date: ' ./"MAIL_NEXT_NAME" )"
+		DATE_MAIL_NEXT="$( grep -m 1 '^Date: ' ./"$MAIL_NEXT_NAME" )"
 		if [[ "$DATE_MAIL_CURRENT" == "$DATE_MAIL_NEXT" ]]; then #Если даты совпадают - письмо следующее ( number_of_mail + 1 ) удаляется
  			echo "удаляю $MAIL_CURRENT_NAME"
 			rm ./"$MAIL_CURRENT_NAME"
 		fi
-		if [[ "$number_of__next_mail" > "$amount_of_mails" ]]; then
+		if [[ "$number_of__next_mail" == "$stop_point" ]]; then
 			echo 'Удаление одинаковых писем закончено'
 			break
 		fi
@@ -115,7 +117,7 @@ function FIND_USER () {
 					echo -e 'goncharov-a\n'
 					user_mailbox='/home/vmail/goncharov-a'
 				fi
-				COPPY_AND_RENAME
+				COPY_AND_RENAME
 				#echo -e "$user_mailbox\\n$user_folder"
 
 		done < "$work_folder/$group_name/.qmail"
